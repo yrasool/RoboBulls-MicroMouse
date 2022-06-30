@@ -1,0 +1,539 @@
+#VRML_SIM R2022a utf8
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
+  position 1.44 1.44 6.4134859105764574
+}
+TexturedBackgroundLight {
+  castShadows FALSE
+}
+PointLight {
+  attenuation 0 0 1
+  intensity 21
+  location 4 4 -1
+  radius 10
+  castShadows TRUE
+}
+Floor {
+  translation 1.44 1.44 0
+  size 2.88 2.88
+  tileSize 0.36 0.36
+  appearance Parquetry {
+    type "chequered"
+    colorOverride 0 0.1 0
+  }
+}
+DEF epuck E-puck {
+  hidden position_0_0 2.863998620498834
+  hidden position_0_1 -1.9423975530251056
+  hidden rotation_1 0 0.9999999999999999 0 2.863998620498834
+  hidden rotation_2 0 -0.9999999999999999 0 1.9423975530251054
+  translation 0.08991723901522862 0.09917868480601706 -6.394577727339597e-05
+  rotation -0.000645383042474055 0.0006453790562795304 0.9999995834832143 1.5708004186871
+  controller "robot_controller"
+  supervisor TRUE
+  turretSlot [
+    InertialUnit {
+      rotation 0 1 0 1.57
+      noise 0.1
+    }
+    DEF Left DistanceSensor {
+      translation 0.01 0.035 -0.011
+      rotation 0 0 1 1.5708
+      name "left distance sensor"
+      recognitionColors [
+        0 0 0
+      ]
+      lookupTable [
+        0 0 0
+        1.27 1.27 0.1
+      ]
+    }
+    DEF Front DistanceSensor {
+      translation 0.045 0 -0.011
+      name "front distance sensor"
+      lookupTable [
+        0 0 0
+        1.27 1.27 0.1
+      ]
+    }
+    DEF Right DistanceSensor {
+      translation 0.01 -0.035 -0.011
+      rotation 0 0 1 -1.5707853071795865
+      name "right distance sensor"
+      lookupTable [
+        0 0 0
+        1.27 1.27 0.1
+      ]
+    }
+    Camera {
+      translation 0 -0.01 -0.045
+      name "camera1"
+      recognitionColors [
+        1 1 0
+      ]
+      fieldOfView 1.57
+      width 80
+      height 80
+      recognition Recognition {
+      }
+    }
+  ]
+}
+MazeWallNorthSouth {
+	translation 0.09 2.88 0.025
+	name "Cell 0 North Wall"
+}
+MazeWallEastWest {
+	translation 0.0 2.79 0.025
+	name "Cell 0 West Wall"
+}
+MazeWallNorthSouth {
+	translation 0.27 2.88 0.025
+	name "Cell 1 North Wall"
+}
+MazeWallNorthSouth {
+	translation 0.45 2.88 0.025
+	name "Cell 2 North Wall"
+}
+MazeWallNorthSouth {
+	translation 0.63 2.88 0.025
+	name "Cell 3 North Wall"
+}
+MazeWallNorthSouth {
+	translation 0.81 2.88 0.025
+	name "Cell 4 North Wall"
+}
+MazeWallNorthSouth {
+	translation 0.99 2.88 0.025
+	name "Cell 5 North Wall"
+}
+MazeWallNorthSouth {
+	translation 1.17 2.88 0.025
+	name "Cell 6 North Wall"
+}
+MazeWallNorthSouth {
+	translation 1.35 2.88 0.025
+	name "Cell 7 North Wall"
+}
+MazeWallNorthSouth {
+	translation 1.53 2.88 0.025
+	name "Cell 8 North Wall"
+}
+MazeWallNorthSouth {
+	translation 1.71 2.88 0.025
+	name "Cell 9 North Wall"
+}
+MazeWallNorthSouth {
+	translation 1.89 2.88 0.025
+	name "Cell 10 North Wall"
+}
+MazeWallNorthSouth {
+	translation 2.07 2.88 0.025
+	name "Cell 11 North Wall"
+}
+MazeWallNorthSouth {
+	translation 2.25 2.88 0.025
+	name "Cell 12 North Wall"
+}
+MazeWallNorthSouth {
+	translation 2.43 2.88 0.025
+	name "Cell 13 North Wall"
+}
+MazeWallNorthSouth {
+	translation 2.61 2.88 0.025
+	name "Cell 14 North Wall"
+}
+MazeWallNorthSouth {
+	translation 2.79 2.88 0.025
+	name "Cell 15 North Wall"
+}
+MazeWallEastWest {
+	translation 2.88 2.79 0.025
+	name "Cell 15 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 2.61 0.025
+	name "Cell 16 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 2.61 0.025
+	name "Cell 31 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 2.43 0.025
+	name "Cell 32 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 2.43 0.025
+	name "Cell 47 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 2.25 0.025
+	name "Cell 48 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 2.25 0.025
+	name "Cell 63 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 2.07 0.025
+	name "Cell 64 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 2.07 0.025
+	name "Cell 79 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 1.89 0.025
+	name "Cell 80 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 1.89 0.025
+	name "Cell 95 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 1.71 0.025
+	name "Cell 96 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 1.71 0.025
+	name "Cell 111 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 1.53 0.025
+	name "Cell 112 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 1.53 0.025
+	name "Cell 127 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 1.35 0.025
+	name "Cell 128 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 1.35 0.025
+	name "Cell 143 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 1.17 0.025
+	name "Cell 144 West Wall"
+}
+MazeWallEastWest {
+	translation 2.88 1.17 0.025
+	name "Cell 159 East Wall"
+}
+MazeWallNorthSouth {
+	translation 0.09 0.9 0.025
+	name "Cell 160 South Wall"
+}
+MazeWallEastWest {
+	translation 0.0 0.99 0.025
+	name "Cell 160 West Wall"
+}
+MazeWallNorthSouth {
+	translation 0.27 0.9 0.025
+	name "Cell 161 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.45 0.9 0.025
+	name "Cell 162 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.63 0.9 0.025
+	name "Cell 163 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.81 0.9 0.025
+	name "Cell 164 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.99 0.9 0.025
+	name "Cell 165 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.17 0.9 0.025
+	name "Cell 166 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.35 0.9 0.025
+	name "Cell 167 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.53 0.9 0.025
+	name "Cell 168 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.71 0.9 0.025
+	name "Cell 169 South Wall"
+}
+MazeWallEastWest {
+	translation 2.88 0.99 0.025
+	name "Cell 175 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 0.81 0.025
+	name "Cell 176 West Wall"
+}
+MazeWallNorthSouth {
+	translation 0.45 0.72 0.025
+	name "Cell 178 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.63 0.72 0.025
+	name "Cell 179 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.81 0.72 0.025
+	name "Cell 180 South Wall"
+}
+MazeWallEastWest {
+	translation 1.08 0.81 0.025
+	name "Cell 181 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.17 0.72 0.025
+	name "Cell 182 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.35 0.72 0.025
+	name "Cell 183 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.53 0.72 0.025
+	name "Cell 184 South Wall"
+}
+MazeWallEastWest {
+	translation 1.8 0.81 0.025
+	name "Cell 185 East Wall"
+}
+MazeWallEastWest {
+	translation 2.88 0.81 0.025
+	name "Cell 191 East Wall"
+}
+MazeWallEastWest {
+	translation 0.18 0.63 0.025
+	name "Cell 192 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 0.63 0.025
+	name "Cell 192 West Wall"
+}
+MazeWallNorthSouth {
+	translation 0.45 0.54 0.025
+	name "Cell 194 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.63 0.54 0.025
+	name "Cell 195 South Wall"
+}
+MazeWallEastWest {
+	translation 1.08 0.63 0.025
+	name "Cell 197 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.17 0.54 0.025
+	name "Cell 198 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.35 0.54 0.025
+	name "Cell 199 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.53 0.54 0.025
+	name "Cell 200 South Wall"
+}
+MazeWallEastWest {
+	translation 1.8 0.63 0.025
+	name "Cell 201 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.71 0.54 0.025
+	name "Cell 201 South Wall"
+}
+MazeWallEastWest {
+	translation 2.88 0.63 0.025
+	name "Cell 207 East Wall"
+}
+MazeWallEastWest {
+	translation 0.18 0.45 0.025
+	name "Cell 208 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 0.45 0.025
+	name "Cell 208 West Wall"
+}
+MazeWallEastWest {
+	translation 0.36 0.45 0.025
+	name "Cell 209 East Wall"
+}
+MazeWallNorthSouth {
+	translation 0.45 0.36 0.025
+	name "Cell 210 South Wall"
+}
+MazeWallEastWest {
+	translation 0.9 0.45 0.025
+	name "Cell 212 East Wall"
+}
+MazeWallEastWest {
+	translation 1.08 0.45 0.025
+	name "Cell 213 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.35 0.36 0.025
+	name "Cell 215 South Wall"
+}
+MazeWallEastWest {
+	translation 1.62 0.45 0.025
+	name "Cell 216 East Wall"
+}
+MazeWallEastWest {
+	translation 1.8 0.45 0.025
+	name "Cell 217 East Wall"
+}
+MazeWallEastWest {
+	translation 2.88 0.45 0.025
+	name "Cell 223 East Wall"
+}
+MazeWallEastWest {
+	translation 0.18 0.27 0.025
+	name "Cell 224 East Wall"
+}
+MazeWallEastWest {
+	translation 0.0 0.27 0.025
+	name "Cell 224 West Wall"
+}
+MazeWallEastWest {
+	translation 0.36 0.27 0.025
+	name "Cell 225 East Wall"
+}
+MazeWallEastWest {
+	translation 0.72 0.27 0.025
+	name "Cell 227 East Wall"
+}
+MazeWallNorthSouth {
+	translation 0.63 0.18 0.025
+	name "Cell 227 South Wall"
+}
+MazeWallEastWest {
+	translation 0.9 0.27 0.025
+	name "Cell 228 East Wall"
+}
+MazeWallEastWest {
+	translation 1.08 0.27 0.025
+	name "Cell 229 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.17 0.18 0.025
+	name "Cell 230 South Wall"
+}
+MazeWallEastWest {
+	translation 1.44 0.27 0.025
+	name "Cell 231 East Wall"
+}
+MazeWallEastWest {
+	translation 1.62 0.27 0.025
+	name "Cell 232 East Wall"
+}
+MazeWallEastWest {
+	translation 1.8 0.27 0.025
+	name "Cell 233 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.71 0.18 0.025
+	name "Cell 233 South Wall"
+}
+MazeWallEastWest {
+	translation 2.88 0.27 0.025
+	name "Cell 239 East Wall"
+}
+MazeWallEastWest {
+	translation 0.18 0.09 0.025
+	name "Cell 240 East Wall"
+}
+MazeWallNorthSouth {
+	translation 0.09 0.0 0.025
+	name "Cell 240 South Wall"
+}
+MazeWallEastWest {
+	translation 0.0 0.09 0.025
+	name "Cell 240 West Wall"
+}
+MazeWallNorthSouth {
+	translation 0.27 0.0 0.025
+	name "Cell 241 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.45 0.0 0.025
+	name "Cell 242 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.63 0.0 0.025
+	name "Cell 243 South Wall"
+}
+MazeWallEastWest {
+	translation 0.9 0.09 0.025
+	name "Cell 244 East Wall"
+}
+MazeWallNorthSouth {
+	translation 0.81 0.0 0.025
+	name "Cell 244 South Wall"
+}
+MazeWallNorthSouth {
+	translation 0.99 0.0 0.025
+	name "Cell 245 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.17 0.0 0.025
+	name "Cell 246 South Wall"
+}
+MazeWallEastWest {
+	translation 1.44 0.09 0.025
+	name "Cell 247 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.35 0.0 0.025
+	name "Cell 247 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.53 0.0 0.025
+	name "Cell 248 South Wall"
+}
+MazeWallEastWest {
+	translation 1.8 0.09 0.025
+	name "Cell 249 East Wall"
+}
+MazeWallNorthSouth {
+	translation 1.71 0.0 0.025
+	name "Cell 249 South Wall"
+}
+MazeWallNorthSouth {
+	translation 1.89 0.0 0.025
+	name "Cell 250 South Wall"
+}
+MazeWallNorthSouth {
+	translation 2.07 0.0 0.025
+	name "Cell 251 South Wall"
+}
+MazeWallNorthSouth {
+	translation 2.25 0.0 0.025
+	name "Cell 252 South Wall"
+}
+MazeWallNorthSouth {
+	translation 2.43 0.0 0.025
+	name "Cell 253 South Wall"
+}
+MazeWallNorthSouth {
+	translation 2.61 0.0 0.025
+	name "Cell 254 South Wall"
+}
+MazeWallEastWest {
+	translation 2.88 0.09 0.025
+	name "Cell 255 East Wall"
+}
+MazeWallNorthSouth {
+	translation 2.79 0.0 0.025
+	name "Cell 255 South Wall"
+}

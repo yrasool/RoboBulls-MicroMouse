@@ -1,0 +1,83 @@
+#VRML_SIM R2022a utf8
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
+  position 1.44 1.44 6.4134859105764574
+}
+TexturedBackgroundLight {
+  castShadows FALSE
+}
+PointLight {
+  attenuation 0 0 1
+  intensity 21
+  location 4 4 -1
+  radius 10
+  castShadows TRUE
+}
+Floor {
+  translation 1.44 1.44 0
+  size 2.88 2.88
+  tileSize 0.36 0.36
+  appearance Parquetry {
+    type "chequered"
+    colorOverride 0 0.1 0
+  }
+}
+DEF epuck E-puck {
+  hidden position_0_0 2.863998620498834
+  hidden position_0_1 -1.9423975530251056
+  hidden rotation_1 0 0.9999999999999999 0 2.863998620498834
+  hidden rotation_2 0 -0.9999999999999999 0 1.9423975530251054
+  translation 0.08991723901522862 0.09917868480601706 -6.394577727339597e-05
+  rotation -0.000645383042474055 0.0006453790562795304 0.9999995834832143 1.5708004186871
+  controller "robot_controller"
+  supervisor TRUE
+  turretSlot [
+    InertialUnit {
+      rotation 0 1 0 1.57
+      noise 0.1
+    }
+    DEF Left DistanceSensor {
+      translation 0.01 0.035 -0.011
+      rotation 0 0 1 1.5708
+      name "left distance sensor"
+      recognitionColors [
+        0 0 0
+      ]
+      lookupTable [
+        0 0 0
+        1.27 1.27 0.1
+      ]
+    }
+    DEF Front DistanceSensor {
+      translation 0.045 0 -0.011
+      name "front distance sensor"
+      lookupTable [
+        0 0 0
+        1.27 1.27 0.1
+      ]
+    }
+    DEF Right DistanceSensor {
+      translation 0.01 -0.035 -0.011
+      rotation 0 0 1 -1.5707853071795865
+      name "right distance sensor"
+      lookupTable [
+        0 0 0
+        1.27 1.27 0.1
+      ]
+    }
+    Camera {
+      translation 0 -0.01 -0.045
+      name "camera1"
+      recognitionColors [
+        1 1 0
+      ]
+      fieldOfView 1.57
+      width 80
+      height 80
+      recognition Recognition {
+      }
+    }
+  ]
+}
