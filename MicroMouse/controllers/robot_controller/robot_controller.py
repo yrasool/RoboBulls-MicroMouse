@@ -230,9 +230,6 @@ while robot.step(timestep) != -1:
     # Gets the index of the the cell in regards to world map maze  
     r,c = get_rc_from_index(robot_pose.cell_index)
     
-    # Gets the current cell's wall configuration
-    cell_walls = world_map.maze[r][c].wall_config
-    
     # Maps current wall config
     world_map.set_cell_walls(r,c,sensor_readings,heading)
     # print("Discovered: ", world_map.maze[r][c].discovered)
