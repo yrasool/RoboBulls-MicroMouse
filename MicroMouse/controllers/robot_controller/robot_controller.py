@@ -121,16 +121,18 @@ def rotate(robot,degree):
     starting_theta = round(imu_cleaner(imu.getRollPitchYaw()[2]))
     end_heading = round((starting_theta - degree)%360,2)
 
+    marg_error = .05
+
     while robot.step(timestep) != -1:
         current_heading = imu_cleaner(imu.getRollPitchYaw()[2])
         if (robot.getTime() - t_start) >= T:
             
-            if end_heading <= 1 or end_heading >= 359:
+            if end_heading <= 3 or end_heading >= 357:
 
-                if current_heading > (end_heading+.05) and current_heading < (359-.05):
+                if current_heading > (end_heading+marg_error) and current_heading < (357-marg_error):
                     leftMotor.setVelocity(.01)
                     rightMotor.setVelocity(-.01)
-                elif current_heading > (359+.05):
+                elif current_heading > (359+marg_error):
                     leftMotor.setVelocity(-.01)
                     rightMotor.setVelocity(.01)
                 else:
@@ -138,10 +140,10 @@ def rotate(robot,degree):
                     rightMotor.setVelocity(0)
                     break
             else:
-                if current_heading > (end_heading+.05):
+                if current_heading > (end_heading+marg_error):
                     leftMotor.setVelocity(.01)
                     rightMotor.setVelocity(-.01)
-                elif current_heading < (end_heading-.05):
+                elif current_heading < (end_heading-marg_error):
                     leftMotor.setVelocity(-.01)
                     rightMotor.setVelocity(.01)
                 else:
@@ -260,12 +262,11 @@ while robot.step(timestep) != -1:
     world_map.set_cell_walls(r,c,sensor_readings,heading)
     robot_pose.add_visited(world_map.maze[r][c])
 
-    # print("Discovered: ", world_map.maze[r][c].discovered)
+    # TODO: Create a print statement to show the status of the map
     
     # Flag used to determin if there is an adjacent cell that is undiscoverd and not
     #   blocked by wall. If there is move into that cell.
     has_next_cell = False
-    # TODO: fix to also check if next cell is discovered
     for w in world_map.maze[r][c].walls:
         if not w.valid and not world_map.is_adjacent_cell_discovered(r,c,w.direction):
             possible_heading = w.direction
@@ -280,7 +281,8 @@ while robot.step(timestep) != -1:
             break
         
     # This is if there are no adjacent undiscoved cells that are unblocked
-    #   just navigate untill the robot finds an undiscoved cell, WILL GET STUCK
+    # retrace steps untill an undiscoved cell is found that is unblocked (Works but slow)
+    
     # TODO: add path planning to get to closest undiscovered cell through discovered cell
     if not has_next_cell:
         print("Back Tracking")
