@@ -113,3 +113,14 @@ o   o   o---o---o---o---o---o   o   o---o---o---o---o---o---o   o
 |   |                           |                               |
 o---o---o---o---o---o---o---o---o---o---o---o---o---o---o---o---o
 ```
+
+# TODO
+## Create a Maze object print function
+We need to have a way of printing the status of all the cell in the maze to the console, so that we can check the progress of the mapping algorithm in real time.
+
+## Speed up the moveD function
+We need to fine toon the moveD function to move the robot as fast as we can without accumulating too much error.
+
+## Integrate a Path Planning function 
+We need a function that will find the shortest path to an undiscovered cell through discovered cells.
+We should also prioritze undiscovered cells that are in the direction of the goal.
