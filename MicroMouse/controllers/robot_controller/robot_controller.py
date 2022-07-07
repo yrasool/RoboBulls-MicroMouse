@@ -117,20 +117,46 @@ def rotate(robot,degree):
     t_start = robot.getTime()
     leftMotor.setVelocity(phi)
     rightMotor.setVelocity(-phi)
-      
+    
+    starting_theta = round(imu_cleaner(imu.getRollPitchYaw()[2]))
+    end_heading = round((starting_theta - degree)%360,2)
 
     while robot.step(timestep) != -1:
-         current_heading = imu_cleaner(imu.getRollPitchYaw()[2])
-         if (robot.getTime() - t_start) >= T:
-            leftMotor.setVelocity(0)
-            rightMotor.setVelocity(0)
-            break
-    
+        current_heading = imu_cleaner(imu.getRollPitchYaw()[2])
+        if (robot.getTime() - t_start) >= T:
+            
+            if end_heading <= 1 or end_heading >= 359:
+
+                if current_heading > (end_heading+.05) and current_heading < (359-.05):
+                    leftMotor.setVelocity(.01)
+                    rightMotor.setVelocity(-.01)
+                elif current_heading > (359+.05):
+                    leftMotor.setVelocity(-.01)
+                    rightMotor.setVelocity(.01)
+                else:
+                    leftMotor.setVelocity(0)
+                    rightMotor.setVelocity(0)
+                    break
+            else:
+                if current_heading > (end_heading+.05):
+                    leftMotor.setVelocity(.01)
+                    rightMotor.setVelocity(-.01)
+                elif current_heading < (end_heading-.05):
+                    leftMotor.setVelocity(-.01)
+                    rightMotor.setVelocity(.01)
+                else:
+                    leftMotor.setVelocity(0)
+                    rightMotor.setVelocity(0)
+                    break
+        else: 
+            pass
+
+
     t_start = robot.getTime()
     headings=[]       
     while robot.step(timestep) != -1:
-         headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
-         if (robot.getTime() - t_start) >= 1.5:
+        headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
+        if (robot.getTime() - t_start) >= 1.5:
             leftMotor.setVelocity(0)
             rightMotor.setVelocity(0)
             break
@@ -143,7 +169,7 @@ def rotate(robot,degree):
     # print(theta)
     robot_pose.set_theta(theta) 
     robot_pose.set_xy(robot_pose.x,robot_pose.y)
-            
+
 # Cleans the IMU readings so that the are in degrees and in the
 # range of [0,359]
 def imu_cleaner(imu_reading):
@@ -232,6 +258,8 @@ while robot.step(timestep) != -1:
     
     # Maps current wall config
     world_map.set_cell_walls(r,c,sensor_readings,heading)
+    robot_pose.add_visited(world_map.maze[r][c])
+
     # print("Discovered: ", world_map.maze[r][c].discovered)
     
     # Flag used to determin if there is an adjacent cell that is undiscoverd and not
@@ -255,17 +283,16 @@ while robot.step(timestep) != -1:
     #   just navigate untill the robot finds an undiscoved cell, WILL GET STUCK
     # TODO: add path planning to get to closest undiscovered cell through discovered cell
     if not has_next_cell:
-        if fd >.09:
-            driveD(robot,180)
-        elif ld > .09 :
-            rotate(robot,-90)
-            driveD(robot,180)
-        elif rd > .09 :
-            rotate(robot,90)
-            driveD(robot,180)
-        elif bd > .09 :
-            rotate(robot,180)
-            driveD(robot,180)
+        print("Back Tracking")
+        needed_rotation = robot_pose.rotation_needed_to_last_cell(heading)
+        print(needed_rotation)        
+        if (needed_rotation != 0):
+            rotate(robot,needed_rotation)
+            driveD(robot, 180)
+        else:
+            driveD(robot, 180)
+        robot_pose.moved_to_last_cell()
+
     
     # Checks to see if all the cells have been discoved and mapped     
     if world_map.is_fully_discovered():

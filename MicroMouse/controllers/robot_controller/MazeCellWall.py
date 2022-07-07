@@ -264,15 +264,15 @@ class wall:
 #           walls               List of wall objects one for each direction          
 #########################################################################################
 class cell:
-    def __init__(self, index = 0, wall_code = 'Unknown', discovered = False, size = 16):
+    def __init__(self, cell_index = 0, wall_code = 'Unknown', discovered = False, size = 16):
         
-        self.index = index
+        self.cell_index = cell_index
         self.wall_code = wall_code
         self.wall_config = wall_dict[wall_code]
         self.discovered = discovered
         
         # Sets the row and column index relative to a size x size maze (default 16x16)
-        self.cell_row, self.cell_col = divmod(index,size)
+        self.cell_row, self.cell_col = divmod(cell_index,size)
         
         # Sets the row and column index relative of adjacent cells
         
@@ -303,7 +303,7 @@ class cell:
         # Creates a list of wall object
         self.walls = []
         for wall_indexer in range(4):
-            w = wall(self.index, self.center_x, self.center_y, wall_indexer, self.wall_config[wall_indexer])
+            w = wall(self.cell_index, self.center_x, self.center_y, wall_indexer, self.wall_config[wall_indexer])
             self.walls.append(w)
   
     ##############################################################################################
@@ -340,7 +340,7 @@ class maze:
         indexer = 0
         for cell_code in cell_codes:
             r,c = divmod(indexer,size)
-            cell_and_walls = cell(index=indexer,wall_code=cell_code)
+            cell_and_walls = cell(cell_index=indexer,wall_code=cell_code)
             self.maze[r][c] = cell_and_walls
             indexer+=1
     
@@ -362,7 +362,7 @@ class maze:
         print(wall_config)
         wall_code = list(wall_dict.keys())[list(wall_dict.values()).index(wall_config)]
         # Creates new cell object and updates the maze
-        cell_and_walls = cell(index=indexer,wall_code=wall_code,discovered=True)
+        cell_and_walls = cell(cell_index=indexer,wall_code=wall_code,discovered=True)
         self.maze[cell_r][cell_c] = cell_and_walls
     
     ##############################################################################################
@@ -408,6 +408,7 @@ class robotPose:
         self.x, self.y              = get_xy_from_rc(self.cell_r, self.cell_c)
         self.theta                  = theta
         self.heading                = angle_to_heading(theta)
+        self.visited                = []
     def set_xy(self,x,y):
         self.x = x
         self.y = y
@@ -426,3 +427,30 @@ class robotPose:
         print(" \t Current x, y:   \t" + str(self.x) +", " + str(self.y))
         print(" \t Current theta:  \t" + str(self.theta))
         print(" \t Current Heading:\t" + self.heading)
+    
+    def add_visited(self, current_cell):
+        if len(self.visited) > 0:
+            if current_cell.cell_index != self.visited[-1].cell_index:
+                self.visited.append(current_cell)
+        else:
+            self.visited.append(current_cell)
+    def rotation_needed_to_last_cell(self,current_heading):
+        current_cell = self.visited[-1]
+        previous_cell = self.visited[-2]
+        dx = previous_cell.cell_col - current_cell.cell_col
+        dy = previous_cell.cell_row - current_cell.cell_row
+        if dx != 0:
+            if dx > 0:
+                needed_heading = 'East'
+            else:
+                needed_heading = 'West'
+        if dy != 0:
+            if dy > 0:
+                needed_heading = 'South'
+            else:
+                needed_heading = 'North'
+        return turnNeeded(current_heading, needed_heading)
+
+    def moved_to_last_cell(self):
+        self.visited.pop()
+        self.visited.pop()
