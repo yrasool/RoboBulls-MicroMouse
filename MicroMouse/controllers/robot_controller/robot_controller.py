@@ -107,7 +107,7 @@ def rotate(robot,degree):
     else:
         sign = 1
     X_rad = math.radians(degree)
-    phi = sign*.5
+    phi = sign*2
     
     # Calculates time need for rotation
     omega = 2*abs(phi)*wheel_radius / axel_length
