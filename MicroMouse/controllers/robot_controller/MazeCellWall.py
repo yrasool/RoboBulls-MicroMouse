@@ -264,12 +264,13 @@ class wall:
 #           walls               List of wall objects one for each direction          
 #########################################################################################
 class cell:
-    def __init__(self, cell_index = 0, wall_code = 'Unknown', discovered = False, size = 16):
+    def __init__(self, cell_index = 0, wall_code = 'Unknown', discovered = False, size = 16, distance_to_goal = -1):
         
         self.cell_index = cell_index
         self.wall_code = wall_code
         self.wall_config = wall_dict[wall_code]
         self.discovered = discovered
+        self.distance_to_goal = distance_to_goal
         
         # Sets the row and column index relative to a size x size maze (default 16x16)
         self.cell_row, self.cell_col = divmod(cell_index,size)
@@ -326,7 +327,22 @@ class cell:
         elif direction == "West":
             return self.cell_to_west_row, self.cell_to_west_col
 
-
+    ##############################################################################################
+    # Class Function: Get Direction to Next Cell
+    #   INPUT:  direction [North, East, South, West] 
+    #  
+    #   OUTPUT: cell_to_*_row  world map row index for cell to the * in [North, East, South, West]
+    #           cell_to_*_col  world map col index for cell to the * in [North, East, South, West]          
+    ##############################################################################################
+    def get_direction_next_cell(self,next_cell):
+        if self.cell_index_to_north == next_cell.cell_index:
+            return 'North'
+        elif self.cell_index_to_east == next_cell.cell_index:
+            return 'East'
+        elif self.cell_index_to_south == next_cell.cell_index:
+            return 'South'
+        elif self.cell_index_to_west == next_cell.cell_index:
+            return 'West'
 #########################################################################################
 # Class:    Maze
 #   ATRB:   maze                Size x Size np.array of cell objects (Size default is 16)
@@ -334,13 +350,16 @@ class cell:
 #########################################################################################
 class maze:
     # Construction of a Maze Object. Wall configuration can be known or unknown 
-    def __init__(self, cell_codes=np.full(256, 'Unknown'), size = 16):
+    def __init__(self, cell_codes=np.full(256, 'Unknown'), size = 16, goal_index = 119):
         self.maze = np.full((size, size), cell())
         self.fully_discovered = False
+        self.goal_index = goal_index
+        self.goal_row, self.goal_col = get_rc_from_index(self.goal_index)
         indexer = 0
         for cell_code in cell_codes:
             r,c = divmod(indexer,size)
-            cell_and_walls = cell(cell_index=indexer,wall_code=cell_code)
+            self.distance_to_goal(r,c)
+            cell_and_walls = cell(cell_index=indexer,wall_code=cell_code,distance_to_goal=self.distance_to_goal(r,c))
             self.maze[r][c] = cell_and_walls
             indexer+=1
     
@@ -377,7 +396,47 @@ class maze:
         return self.maze[next_r][next_c].discovered
 
     ##############################################################################################
-    # Class Function: Get Adjacent Cell
+    # Class Function: Gets Perfered Order of Next Cell
+    #   INPUT:  cell_r        world map row index 
+    #           cell_c        world map col index  
+    #           direction     [North, East, South, West]
+    #   OUTPUT: [True, False] if the next cell is discovered         
+    ##############################################################################################
+    def get_prefered_next_cells(self, cell_r, cell_c):
+        next_cells = []
+        has_next = False
+
+        for w in self.maze[cell_r][cell_c].walls:
+            if not w.valid and not self.is_adjacent_cell_discovered(cell_r,cell_c,w.direction):
+                next_r, next_c = self.maze[cell_r][cell_c].get_adjacent_cell(w.direction)
+                next_cells.append(self.maze[next_r][next_c])
+                has_next = True
+    #         possible_heading = w.direction
+    #         has_next_cell = True
+
+
+    #         if (turnNeeded(heading,possible_heading) != 0):
+    #             rotate(robot,turnNeeded(heading,possible_heading))
+    #             driveD(robot, 180)
+    #         else:
+    #             driveD(robot, 180)
+    #         print("Possible heading: " + str(possible_heading))
+    #         print("Turn Needed: "+ str(turnNeeded(heading,possible_heading)))
+    #         break
+
+        # for direction in directions:
+        #     next_r, next_c = self.maze[cell_r][cell_c].get_adjacent_cell(direction)
+        #     if not self.maze[next_r][next_c].discovered and self.maze[cell_r][cell_c].:
+        #         next_cells.append(self.maze[next_r][next_c])
+        #         has_next = True
+        if has_next:
+            return sorted(next_cells, key=lambda x: x.distance_to_goal)
+        else:
+
+            return None
+
+    ##############################################################################################
+    # Class Function: Is Maze Fully Discovered
     #   INPUT:  self (maze object) 
     #  
     #   OUTPUT: [True, False] if the world map is fully discovered         
@@ -390,6 +449,39 @@ class maze:
                 if not maze_cell.discovered:
                     self.fully_discovered = False
         return self.fully_discovered
+        
+
+    ##############################################################################################
+    # Class Function: Is Goal Cell Discovered
+    #   INPUT:  self (maze object)
+    #           goal_index (index of the cell we want to see if is discovered) 
+    #  
+    #   OUTPUT: [True, False] if the goal cell is fully discovered         
+    ##############################################################################################
+    # Updates fully discovered flag
+    def is_goal_discovered(self, goal_cell= -1):
+        if goal_cell ==-1:
+            return self.maze[self.goal_row][self.goal_col].discovered
+        else:
+            r,c = get_rc_from_index(goal_cell)
+            return self.maze[r][c].discovered
+
+    ##############################################################################################
+    # Class Function: Distance to Cell
+    #   INPUT:  self        (maze object)
+    #           current_r   world map row index of current cell
+    #           current_c   world map col index of current cell
+    #           goal_r      world map row index of goal cell
+    #           goal_c      world map col index of goal cell
+    #  
+    #   OUTPUT: int of distance to goal cell in number of cells assume 4-way conntection     
+    ##############################################################################################
+    # Updates fully discovered flag
+    def distance_to_goal(self, current_r,current_c, goal_r = -1, goal_c =- 1):
+        if goal_r ==-1 and goal_c == -1:
+            return  abs(current_r - self.goal_row) + abs(current_c-self.goal_col)
+        else:
+            return abs(current_r - goal_r) + abs(current_c-goal_c)    
         
 #########################################################################################
 # Class:    robotPose
