@@ -60,8 +60,8 @@ def driveD(robot,D):
     
     # Calculates velocity of each motor and the robot
     phi = 5                 # rad/sec
-    vl  = 5 * wheel_radius  # mm/sec left motor
-    vr  = 5 * wheel_radius  # mm/sec right motor
+    vl  = phi * wheel_radius  # mm/sec left motor
+    vr  = phi * wheel_radius  # mm/sec right motor
     v   = (vl+vr)/2         # mm/sec robot
 
     # Calculates Time need to move a distance D
@@ -121,35 +121,27 @@ def rotate(robot,degree):
     starting_theta = round(imu_cleaner(imu.getRollPitchYaw()[2]))
     end_heading = round((starting_theta - degree)%360,2)
 
-    marg_error = .05
+    marg_error = .01
 
     while robot.step(timestep) != -1:
         current_heading = imu_cleaner(imu.getRollPitchYaw()[2])
+        east_flag = True if end_heading <= 4 or end_heading >= 356 else False
         if (robot.getTime() - t_start) >= T:
             
-            if end_heading <= 3 or end_heading >= 357:
+            if east_flag:
+    
+                current_heading = current_heading - 360 if current_heading > 355 else current_heading
 
-                if current_heading > (end_heading+marg_error) and current_heading < (357-marg_error):
-                    leftMotor.setVelocity(.01)
-                    rightMotor.setVelocity(-.01)
-                elif current_heading > (359+marg_error):
-                    leftMotor.setVelocity(-.01)
-                    rightMotor.setVelocity(.01)
-                else:
-                    leftMotor.setVelocity(0)
-                    rightMotor.setVelocity(0)
-                    break
+            if current_heading > (end_heading+marg_error):
+                leftMotor.setVelocity(.01)
+                rightMotor.setVelocity(-.01)
+            elif current_heading < (end_heading-marg_error):
+                leftMotor.setVelocity(-.01)
+                rightMotor.setVelocity(.01)
             else:
-                if current_heading > (end_heading+marg_error):
-                    leftMotor.setVelocity(.01)
-                    rightMotor.setVelocity(-.01)
-                elif current_heading < (end_heading-marg_error):
-                    leftMotor.setVelocity(-.01)
-                    rightMotor.setVelocity(.01)
-                else:
-                    leftMotor.setVelocity(0)
-                    rightMotor.setVelocity(0)
-                    break
+                leftMotor.setVelocity(0)
+                rightMotor.setVelocity(0)
+                break
         else: 
             pass
 
@@ -158,7 +150,7 @@ def rotate(robot,degree):
     headings=[]       
     while robot.step(timestep) != -1:
         headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
-        if (robot.getTime() - t_start) >= 1.5:
+        if (robot.getTime() - t_start) >= .1:
             leftMotor.setVelocity(0)
             rightMotor.setVelocity(0)
             break
@@ -257,34 +249,45 @@ while robot.step(timestep) != -1:
     
     # Gets the index of the the cell in regards to world map maze  
     r,c = get_rc_from_index(robot_pose.cell_index)
+    print(world_map.maze[r][c].distance_to_goal)
     
     # Maps current wall config
     world_map.set_cell_walls(r,c,sensor_readings,heading)
     robot_pose.add_visited(world_map.maze[r][c])
 
+    # Checks to see if all the cells have been discoved and mapped     
+    if world_map.is_goal_discovered():
+        leftMotor.setVelocity(0)
+        rightMotor.setVelocity(0)
+        break
+
     # TODO: Create a print statement to show the status of the map
     
-    # Flag used to determin if there is an adjacent cell that is undiscoverd and not
+    # This gets a sorthed list of the adjacent cells that have the following conditions:
+    #   1) There is no wall between the current cell and the adjacent cell
+    #   2) The adjacent cell is undiscovered
+    # the list is sorted based on number of cells need to trvale to reach goal (assumes no walls and 4-way conection) 
+    possible_next_cell = world_map.get_prefered_next_cells(r,c)
+    # Flag used to determine if there is an adjacent cell that is undiscoverd and not
     #   blocked by wall. If there is move into that cell.
-    has_next_cell = False
-    for w in world_map.maze[r][c].walls:
-        if not w.valid and not world_map.is_adjacent_cell_discovered(r,c,w.direction):
-            possible_heading = w.direction
-            has_next_cell = True
-            if (turnNeeded(heading,possible_heading) != 0):
-                rotate(robot,turnNeeded(heading,possible_heading))
-                driveD(robot, 180)
-            else:
-                driveD(robot, 180)
-            print("Possible heading: " + str(possible_heading))
-            print("Turn Needed: "+ str(turnNeeded(heading,possible_heading)))
-            break
+    has_next_cell = True if possible_next_cell != None else False
+    
         
+    
+    
+    if has_next_cell:
+        possible_heading = world_map.maze[r][c].get_direction_next_cell(possible_next_cell[0])
+        if (turnNeeded(heading,possible_heading) != 0):
+            rotate(robot,turnNeeded(heading,possible_heading))
+            driveD(robot, 180)
+        else:
+            driveD(robot, 180)
+        print("Possible heading: " + str(possible_heading))
+        print("Turn Needed: "+ str(turnNeeded(heading,possible_heading)))
     # This is if there are no adjacent undiscoved cells that are unblocked
     # retrace steps untill an undiscoved cell is found that is unblocked (Works but slow)
-    
     # TODO: add path planning to get to closest undiscovered cell through discovered cell
-    if not has_next_cell:
+    else:
         print("Back Tracking")
         needed_rotation = robot_pose.rotation_needed_to_last_cell(heading)
         print(needed_rotation)        
@@ -297,7 +300,7 @@ while robot.step(timestep) != -1:
 
     
     # Checks to see if all the cells have been discoved and mapped     
-    if world_map.is_fully_discovered():
+    if world_map.is_goal_discovered():
         leftMotor.setVelocity(0)
         rightMotor.setVelocity(0)
         break
