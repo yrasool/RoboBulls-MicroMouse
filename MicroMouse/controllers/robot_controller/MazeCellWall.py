@@ -400,7 +400,7 @@ class maze:
     #   INPUT:  cell_r        world map row index 
     #           cell_c        world map col index  
     #           direction     [North, East, South, West]
-    #   OUTPUT: [True, False] if the next cell is discovered         
+    #   OUTPUT: [cell 1-4 ]   sorted list of cells based on distance to goal         
     ##############################################################################################
     def get_prefered_next_cells(self, cell_r, cell_c):
         next_cells = []
@@ -546,3 +546,9 @@ class robotPose:
     def moved_to_last_cell(self):
         self.visited.pop()
         self.visited.pop()
+
+    def print_visted(self):
+        out_list = []
+        for visted_cells in self.visited:
+            out_list.append(visted_cells.cell_index)
+        print(out_list)

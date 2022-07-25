@@ -239,7 +239,7 @@ while robot.step(timestep) != -1:
     print("########################################################################")
     print("Front Distance Sensor : ",fd)
     print("Right Distance Sensor : ",rd)
-    print("Right Distance Sensor : ",rd)
+    print("Rear Distance Sensor : ",bd)
     print("Left Distance Sensor  : ",ld)
     print("Heading : ",heading)
     print("########################################################################")
@@ -284,6 +284,7 @@ while robot.step(timestep) != -1:
             driveD(robot, 180)
         print("Possible heading: " + str(possible_heading))
         print("Turn Needed: "+ str(turnNeeded(heading,possible_heading)))
+    
     # This is if there are no adjacent undiscoved cells that are unblocked
     # retrace steps untill an undiscoved cell is found that is unblocked (Works but slow)
     # TODO: add path planning to get to closest undiscovered cell through discovered cell
@@ -304,6 +305,7 @@ while robot.step(timestep) != -1:
         leftMotor.setVelocity(0)
         rightMotor.setVelocity(0)
         break
-        
+
+print(robot_pose.print_visted())
 sys.exit()
     
