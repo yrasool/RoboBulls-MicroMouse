@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from queue import PriorityQueue
 
 """
 Maze shape and index referance Top -> North & Right -> East
@@ -301,7 +302,7 @@ class cell:
         self.center_x = ((90) + (self.cell_col*180))
         self.center_y = (((180*size) - 90) - (self.cell_row*180))
         
-        # Creates a list of wall object
+        # Creates a list of wall object ordered North, East, South, West
         self.walls = []
         for wall_indexer in range(4):
             w = wall(self.cell_index, self.center_x, self.center_y, wall_indexer, self.wall_config[wall_indexer])
@@ -343,6 +344,37 @@ class cell:
             return 'South'
         elif self.cell_index_to_west == next_cell.cell_index:
             return 'West'
+
+    ##############################################################################################
+    # Class Function: Is Cell Adjacent and Unblocked
+    #   INPUT:  next_cell 
+    #  
+    #   OUTPUT: [True, False] if two cells are adjacent and there is no wall between them          
+    ##############################################################################################
+    def is_adjacent_cell_and_unblocked(self,next_cell):
+        
+        # Check to see if the next cell is adjacent to the current cell
+        adjacent = False
+        direction_index = None
+        if self.cell_index_to_north == next_cell.cell_index:
+            adjacent = True
+            direction_index = 0
+        elif self.cell_index_to_east == next_cell.cell_index:
+            adjacent = True
+            direction_index = 1
+        elif self.cell_index_to_south == next_cell.cell_index:
+            adjacent = True
+            direction_index = 2
+        elif self.cell_index_to_west == next_cell.cell_index:
+            adjacent = True
+            direction_index = 3
+
+        # Checks to see if there is a wall between the two adjacent cells
+        if adjacent:
+            unblocked = self.walls[direction_index].valid
+        return adjacent and unblocked
+        
+
 #########################################################################################
 # Class:    Maze
 #   ATRB:   maze                Size x Size np.array of cell objects (Size default is 16)
@@ -350,7 +382,7 @@ class cell:
 #########################################################################################
 class maze:
     # Construction of a Maze Object. Wall configuration can be known or unknown 
-    def __init__(self, cell_codes=np.full(256, 'Unknown'), size = 16, goal_index = 119):
+    def __init__(self, cell_codes=np.full(256, 'Unknown'), size = 16, goal_index = 119, start_index = 240):
         self.maze = np.full((size, size), cell())
         self.fully_discovered = False
         self.goal_index = goal_index
@@ -358,7 +390,7 @@ class maze:
         indexer = 0
         for cell_code in cell_codes:
             r,c = divmod(indexer,size)
-            self.distance_to_goal(r,c)
+            
             cell_and_walls = cell(cell_index=indexer,wall_code=cell_code,distance_to_goal=self.distance_to_goal(r,c))
             self.maze[r][c] = cell_and_walls
             indexer+=1
@@ -411,24 +443,28 @@ class maze:
                 next_r, next_c = self.maze[cell_r][cell_c].get_adjacent_cell(w.direction)
                 next_cells.append(self.maze[next_r][next_c])
                 has_next = True
-    #         possible_heading = w.direction
-    #         has_next_cell = True
+        if has_next:
+            return sorted(next_cells, key=lambda x: x.distance_to_goal)
+        else:
 
+            return None
 
-    #         if (turnNeeded(heading,possible_heading) != 0):
-    #             rotate(robot,turnNeeded(heading,possible_heading))
-    #             driveD(robot, 180)
-    #         else:
-    #             driveD(robot, 180)
-    #         print("Possible heading: " + str(possible_heading))
-    #         print("Turn Needed: "+ str(turnNeeded(heading,possible_heading)))
-    #         break
+    ##############################################################################################
+    # Class Function: Gets Neighbor Cell
+    #   INPUT:  cell_r        world map row index 
+    #           cell_c        world map col index  
+    #           direction     [North, East, South, West]
+    #   OUTPUT: [cell 1-4 ]   list of cells neighboring current cell with out a blocking wall        
+    ##############################################################################################
+    def get_neighbor_cells(self, cell_r, cell_c):
+        next_cells = []
+        has_next = False
 
-        # for direction in directions:
-        #     next_r, next_c = self.maze[cell_r][cell_c].get_adjacent_cell(direction)
-        #     if not self.maze[next_r][next_c].discovered and self.maze[cell_r][cell_c].:
-        #         next_cells.append(self.maze[next_r][next_c])
-        #         has_next = True
+        for w in self.maze[cell_r][cell_c].walls:
+            if not w.valid :
+                next_r, next_c = self.maze[cell_r][cell_c].get_adjacent_cell(w.direction)
+                next_cells.append(self.maze[next_r][next_c])
+                has_next = True
         if has_next:
             return sorted(next_cells, key=lambda x: x.distance_to_goal)
         else:
@@ -481,8 +517,28 @@ class maze:
         if goal_r ==-1 and goal_c == -1:
             return  abs(current_r - self.goal_row) + abs(current_c-self.goal_col)
         else:
-            return abs(current_r - goal_r) + abs(current_c-goal_c)    
-        
+            return abs(current_r - goal_r) + abs(current_c-goal_c)   
+
+    ##############################################################################################
+    # Class Function: Get Undiscovered Cells Sorted
+    #   INPUT:  self        (maze object)
+    #           current_r   world map row index of current cell
+    #           current_c   world map col index of current cell
+    #  
+    #   OUTPUT: a sorted list of undiscovered cells based on distance to current cell and goal    
+    ##############################################################################################
+    # Updates fully discovered flag
+    def get_sorted_undiscovered(self, current_r,current_c):
+        undiscovered_cells = []
+        has_undiscovered =False
+        for maze_row in self.maze:
+            for maze_cell in maze_row:
+                if not maze_cell.discovered:
+                    undiscovered_cells.append(maze_cell)
+                    has_undiscovered = True
+
+        return sorted(undiscovered_cells, key=lambda x: (self.distance_to_goal(x.cell_row,x.cell_col,current_r,current_c),x.distance_to_goal))
+
 #########################################################################################
 # Class:    robotPose
 #   ATRB:   index   world map maze index
@@ -501,31 +557,77 @@ class robotPose:
         self.theta                  = theta
         self.heading                = angle_to_heading(theta)
         self.visited                = []
+    
+    ##############################################################################################
+    # Class Function: Set  X Y
+    #   INPUT:  self        (robot_pose object)
+    #           x       (robot's current x cordinate mm) 
+    #           y       (robot's current y cordinate mm)
+    #   OUTPUT: None
+    #   ACTION: updates the robot's beliefe of x, y, cell_r, cell_c, and cell_index        
+    ##############################################################################################
     def set_xy(self,x,y):
         self.x = x
         self.y = y
         self.cell_index = get_index_from_xy(self.x,self.y)
         self.cell_r, self.cell_c    = get_rc_from_index(self.cell_index)
+    
+    ##############################################################################################
+    # Class Function: Set  Cell Index
+    #   INPUT:  self        (robot_pose object)
+    #           cell_index   world map maze index
+    #   OUTPUT: None
+    #   ACTION: updates the robot's beliefe of x, y, cell_r, cell_c, and cell_index        
+    ##############################################################################################
     def set_cell_index(self, cell_index):
         self.cell_index = cell_index
         self.cell_r, self.cell_c    = get_rc_from_index(self.cell_index)
         self.x, self.y              = get_xy_from_rc(self.cell_r, self.cell_y)
+    ##############################################################################################
+    # Class Function: Set Theta
+    #   INPUT:  self        (robot_pose object)
+    #           theta   robots's current IMU reading [0,359] degrees
+    #   OUTPUT: None
+    #   ACTION: updates the robot's beliefe of theta and heading      
+    ##############################################################################################
     def set_theta(self, theta):
         self.theta = theta
         self.heading                = angle_to_heading(theta)
+    
+    ##############################################################################################
+    # Class Function: Print Pose
+    #   INPUT:  self        (robot_pose object)
+    #          
+    #   OUTPUT: None
+    #   ACTION: prints the robot pose based off of beliefs       
+    ##############################################################################################
     def printPose(self):
         print("Robots Pose ")
-        print(" \t Current Cell:   \t" + str(self.cell_index))
+        print(" \t Current Cell:   \t" + str(self.cell_r) +", " + str(self.cell_c))
         print(" \t Current x, y:   \t" + str(self.x) +", " + str(self.y))
         print(" \t Current theta:  \t" + str(self.theta))
-        print(" \t Current Heading:\t" + self.heading)
+        # print(" \t Current Heading:\t" + self.heading)
     
+    ##############################################################################################
+    # Class Function: Add Visitied 
+    #   INPUT:  self        (robot_pose object)
+    #           current_cell  cell object that the robot is currently occupying
+    #   OUTPUT: None
+    #   ACTION: updates the list of cells the robot has visited     
+    ##############################################################################################
     def add_visited(self, current_cell):
         if len(self.visited) > 0:
             if current_cell.cell_index != self.visited[-1].cell_index:
                 self.visited.append(current_cell)
         else:
             self.visited.append(current_cell)
+    
+    ##############################################################################################
+    # Class Function: Rotation Needed To Go to Last Cell
+    #   INPUT:  self        (robot_pose object)
+    #           current_heading [North, East, South, West] 
+    #  OUTPUT: the angle needed to rotate the robot to the last cell   
+    ##############################################################################################
     def rotation_needed_to_last_cell(self,current_heading):
         current_cell = self.visited[-1]
         previous_cell = self.visited[-2]
@@ -543,12 +645,103 @@ class robotPose:
                 needed_heading = 'North'
         return turnNeeded(current_heading, needed_heading)
 
+    ##############################################################################################
+    # Class Function: Add Visitied 
+    #   INPUT:  self        (robot_pose object)
+    #           
+    #   OUTPUT: None
+    #   ACTION: updates the list of cells the robot has visited     
+    ##############################################################################################
     def moved_to_last_cell(self):
         self.visited.pop()
         self.visited.pop()
 
+    ##############################################################################################
+    # Class Function: Print Visited
+    #   INPUT:  self        (robot_pose object)
+    #          
+    #   OUTPUT: None
+    #   ACTION: prints the cell index of all the cells visited by the robot      
+    ##############################################################################################
     def print_visted(self):
         out_list = []
         for visted_cells in self.visited:
             out_list.append(visted_cells.cell_index)
         print(out_list)
+    
+    ##############################################################################################
+    # Class Function: Cell List to Action List
+    #   INPUT:  self        (robot_pose object)
+    #           current_heading [North, East, South, West]
+    #           path    a list of cells that need to be traversed
+    #   OUTPUT: a list of rotations needed to travers the path      
+    ##############################################################################################
+    def cell_list_to_action_list(self,current_heading,path):
+        action_list = []
+        for i in range(len(path)-1):
+            current_cell = path[i]
+            previous_cell = path[i+1]
+            dx = previous_cell.cell_col - current_cell.cell_col
+            dy = previous_cell.cell_row - current_cell.cell_row
+            if dx != 0:
+                if dx > 0:
+                    needed_heading = 'East'
+                else:
+                    needed_heading = 'West'
+            if dy != 0:
+                if dy > 0:
+                    needed_heading = 'South'
+                else:
+                    needed_heading = 'North'
+            action_list.append(turnNeeded(current_heading, needed_heading))
+            current_heading = needed_heading
+            
+        return action_list
+
+    ##############################################################################################
+    # Class Function: A*
+    #   INPUT:  self        (robot_pose object)
+    #           world_map   Maze object
+    #   OUTPUT: a list cells to be traversed     
+    ##############################################################################################
+    def astar(self,world_map):
+        start_cell = world_map.maze[self.cell_r][self.cell_c]
+        g_score = {}
+        f_score = {} 
+        for rows in world_map.maze:
+            for cells in rows:
+                g_score[cells]=float('inf')
+                f_score[cells]=float('inf') 
+        
+        g_score[start_cell]=0
+        f_score[start_cell]=start_cell.distance_to_goal
+
+        open_cells=PriorityQueue()
+        open_cells.put((start_cell.distance_to_goal,start_cell.distance_to_goal,(start_cell.cell_row,start_cell.cell_col)))
+        aPath = {}
+        while not open_cells.empty():
+            r,c = open_cells.get()[2]
+            current_cell = world_map.maze[r][c]
+            if not current_cell.discovered:
+                fwdPath=[current_cell]
+                while current_cell.cell_index != start_cell.cell_index:
+                    fwdPath.append(aPath[current_cell])
+                    current_cell=aPath[current_cell]
+                fwdPath.reverse()   
+                return fwdPath
+
+            
+            neighbor_cell = world_map.get_neighbor_cells(current_cell.cell_row,current_cell.cell_col)
+
+            for neighbor in neighbor_cell:
+
+                temp_g_score = g_score[current_cell]+1
+                temp_f_score = temp_g_score + neighbor.distance_to_goal
+
+                if temp_f_score < f_score[neighbor]:
+                    g_score[neighbor]= temp_g_score
+                    f_score[neighbor]= temp_f_score
+                    open_cells.put((temp_f_score,neighbor.distance_to_goal,(neighbor.cell_row,neighbor.cell_col)))
+                    aPath[neighbor]=current_cell
+
+        

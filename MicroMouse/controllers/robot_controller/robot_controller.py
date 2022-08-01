@@ -6,7 +6,6 @@ from MazeCellWall import *
 """
 Maze shape and index referance Top -> North & Right -> East
 Each Cell is 180mm x 180mm
-
 (0mm, 2880mm)                                     (2880mm, 2880m) 
 ˇ                                                               ˇ
 [  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15]
@@ -27,7 +26,6 @@ Each Cell is 180mm x 180mm
 [240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
 ^                                                               ^
 (0mm, 0mm)                                           (2880mm, 0m)
-
 """
 #######################################################
 # Assumptions
