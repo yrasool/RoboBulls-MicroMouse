@@ -2,6 +2,7 @@ import sys
 import math
 from controller import Robot, Camera, CameraRecognitionObject, InertialUnit, DistanceSensor, PositionSensor
 from MazeCellWall import *
+from queue import PriorityQueue
 
 """
 Maze shape and index referance Top -> North & Right -> East
@@ -60,8 +61,8 @@ def driveD(robot,D):
     
     # Calculates velocity of each motor and the robot
     phi = 5                 # rad/sec
-    vl  = 5 * wheel_radius  # mm/sec left motor
-    vr  = 5 * wheel_radius  # mm/sec right motor
+    vl  = phi * wheel_radius  # mm/sec left motor
+    vr  = phi * wheel_radius  # mm/sec right motor
     v   = (vl+vr)/2         # mm/sec robot
 
     # Calculates Time need to move a distance D
@@ -83,6 +84,16 @@ def driveD(robot,D):
 
     D = wheel_radius*(abs(leftposition_sensor.getValue())-start_position)
     
+    t_start = robot.getTime()
+    
+    headings=[]       
+    while robot.step(timestep) != -1:
+        headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
+        if (robot.getTime() - t_start) >= .1:
+            leftMotor.setVelocity(0)
+            rightMotor.setVelocity(0)
+            break
+
     if robot_pose.theta == 0 :
         theta = 0
     else:
@@ -107,7 +118,7 @@ def rotate(robot,degree):
     else:
         sign = 1
     X_rad = math.radians(degree)
-    phi = sign*.5
+    phi = sign*2
     
     # Calculates time need for rotation
     omega = 2*abs(phi)*wheel_radius / axel_length
@@ -120,37 +131,28 @@ def rotate(robot,degree):
     
     starting_theta = round(imu_cleaner(imu.getRollPitchYaw()[2]))
     end_heading = round((starting_theta - degree)%360,2)
-    print(starting_theta, end_heading)
+
+    marg_error = .01
 
     while robot.step(timestep) != -1:
         current_heading = imu_cleaner(imu.getRollPitchYaw()[2])
+        east_flag = True if end_heading <= 4 or end_heading >= 356 else False
         if (robot.getTime() - t_start) >= T:
             
-            if end_heading <= 1 or end_heading >= 359:
-                print("Sup")
-                if current_heading > (end_heading+.05) and current_heading < (359-.05):
-                    print("1")
-                    leftMotor.setVelocity(.01)
-                    rightMotor.setVelocity(-.01)
-                elif current_heading > (359+.05):
-                    print("2")
-                    leftMotor.setVelocity(-.01)
-                    rightMotor.setVelocity(.01)
-                else:
-                    leftMotor.setVelocity(0)
-                    rightMotor.setVelocity(0)
-                    break
+            if east_flag:
+    
+                current_heading = current_heading - 360 if current_heading > 355 else current_heading
+
+            if current_heading > (end_heading+marg_error):
+                leftMotor.setVelocity(.01)
+                rightMotor.setVelocity(-.01)
+            elif current_heading < (end_heading-marg_error):
+                leftMotor.setVelocity(-.01)
+                rightMotor.setVelocity(.01)
             else:
-                if current_heading > (end_heading+.05):
-                    leftMotor.setVelocity(.01)
-                    rightMotor.setVelocity(-.01)
-                elif current_heading < (end_heading-.05):
-                    leftMotor.setVelocity(-.01)
-                    rightMotor.setVelocity(.01)
-                else:
-                    leftMotor.setVelocity(0)
-                    rightMotor.setVelocity(0)
-                    break
+                leftMotor.setVelocity(0)
+                rightMotor.setVelocity(0)
+                break
         else: 
             pass
 
@@ -159,7 +161,7 @@ def rotate(robot,degree):
     headings=[]       
     while robot.step(timestep) != -1:
         headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
-        if (robot.getTime() - t_start) >= 1.5:
+        if (robot.getTime() - t_start) >= .1:
             leftMotor.setVelocity(0)
             rightMotor.setVelocity(0)
             break
@@ -171,9 +173,8 @@ def rotate(robot,degree):
         theta = sum(headings)/len(headings)
     # print(theta)
     robot_pose.set_theta(theta) 
-    robot_pose.set_xy(robot_pose.x,robot_pose.y)
+    # robot_pose.set_xy(robot_pose.x,robot_pose.y)
 
-            
 # Cleans the IMU readings so that the are in degrees and in the
 # range of [0,359]
 def imu_cleaner(imu_reading):
@@ -234,14 +235,56 @@ rightposition_sensor.enable(timestep)
 
 imu = robot.getDevice('inertial unit')
 imu.enable(timestep)
-      
 
+start_time = robot.getTime()
+#######################################################      
 # Main loop:
-# - perform simulation steps until Webots is stopping the controller
+#######################################################
 while robot.step(timestep) != -1:
+    #Gets Distance Sensor readings
+    fd = frontDistanceSensor.getValue()
+    rd = rightDistanceSensor.getValue()
+    bd = rearDistanceSensor.getValue()
+    ld = leftDistanceSensor.getValue()
+    theta = imu_cleaner(imu.getRollPitchYaw()[2])
+    heading = angle_to_heading(theta) 
+    sensor_readings = [fd,rd,bd,ld]
+    # Gets Distance Sensor readings
+    # print("########################################################################")
+    # print("Front Distance Sensor : ",fd)
+    # print("Right Distance Sensor : ",rd)
+    # print("Rear Distance Sensor : ",bd)
+    # print("Left Distance Sensor  : ",ld)
+    # print("Heading : ",heading)
+    print("########################################################################")
+    print("Predicted Pose:")
+    robot_pose.printPose()         
+    print("########################################################################")
     
-    rotate(robot,90)
-    rotate(robot,90)
-    pass
+    # Gets the index of the the cell in regards to world map maze  
+    r,c = get_rc_from_index(robot_pose.cell_index)
+    # Maps current wall config
+    world_map.set_cell_walls(r,c,sensor_readings,heading)
+    robot_pose.add_visited(world_map.maze[r][c])
 
-# Enter here exit cleanup code.
+    # Checks to see if all the cells have been discoved and mapped     
+    if world_map.is_goal_discovered():
+        leftMotor.setVelocity(0)
+        rightMotor.setVelocity(0)
+        break
+
+
+    path = robot_pose.cell_list_to_action_list(heading,robot_pose.astar(world_map))
+    print(path)
+    for action in path:
+        if (action != 0):
+            rotate(robot,action)
+            driveD(robot, 180)
+        else:
+            driveD(robot, 180)
+
+end_time = robot.getTime() - start_time
+print("Run Time: " + str(end_time/60))
+print(robot_pose.print_visted())
+sys.exit()
+    
