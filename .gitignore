@@ -2,7 +2,6 @@
 __pycache__/
 --mode=client/
 venv/
-MicroMouse/controllers/sandbox/
 
 *.sublime-project
 *.sublime-workspace
