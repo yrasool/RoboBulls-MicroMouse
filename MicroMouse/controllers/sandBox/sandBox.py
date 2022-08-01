@@ -60,7 +60,7 @@ def driveD(robot,D):
     start_position = abs(leftposition_sensor.getValue())
     
     # Calculates velocity of each motor and the robot
-    phi = 5                 # rad/sec
+    phi = 6                 # rad/sec
     vl  = phi * wheel_radius  # mm/sec left motor
     vr  = phi * wheel_radius  # mm/sec right motor
     v   = (vl+vr)/2         # mm/sec robot
@@ -73,10 +73,10 @@ def driveD(robot,D):
     leftMotor.setVelocity(phi)
     rightMotor.setVelocity(phi)
 
-    headings = []
+    # headings = []
     while robot.step(timestep) != -1:
         # print(imu_cleaner(imu.getRollPitchYaw()[2]))
-        headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
+        # headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
         if (robot.getTime() - t_start) >= T:
             leftMotor.setVelocity(0)
             rightMotor.setVelocity(0)
@@ -84,25 +84,11 @@ def driveD(robot,D):
 
     D = wheel_radius*(abs(leftposition_sensor.getValue())-start_position)
     
-    t_start = robot.getTime()
-    
-    headings=[]       
-    while robot.step(timestep) != -1:
-        headings.append(imu_cleaner(imu.getRollPitchYaw()[2]))
-        if (robot.getTime() - t_start) >= .1:
-            leftMotor.setVelocity(0)
-            rightMotor.setVelocity(0)
-            break
-
-    if robot_pose.theta == 0 :
-        theta = 0
-    else:
-        theta = sum(headings)/len(headings)
-    new_x = robot_pose.x + (D*math.cos(math.radians(theta)))
-    new_y = robot_pose.y + (D*math.sin(math.radians(theta)))
+    new_x = robot_pose.x + (D*math.cos(math.radians(robot_pose.theta)))
+    new_y = robot_pose.y + (D*math.sin(math.radians(robot_pose.theta)))
     robot_pose.set_xy(new_x,new_y)
-    print(theta)
-    robot_pose.set_theta(theta)
+    # print(theta)
+    # robot_pose.set_theta(theta)
    
 #######################################################
 # General function to rotate the robot by degree,
@@ -118,7 +104,7 @@ def rotate(robot,degree):
     else:
         sign = 1
     X_rad = math.radians(degree)
-    phi = sign*2
+    phi = sign*3
     
     # Calculates time need for rotation
     omega = 2*abs(phi)*wheel_radius / axel_length
@@ -132,7 +118,7 @@ def rotate(robot,degree):
     starting_theta = round(imu_cleaner(imu.getRollPitchYaw()[2]))
     end_heading = round((starting_theta - degree)%360,2)
 
-    marg_error = .01
+    marg_error = .05
 
     while robot.step(timestep) != -1:
         current_heading = imu_cleaner(imu.getRollPitchYaw()[2])
@@ -144,11 +130,11 @@ def rotate(robot,degree):
                 current_heading = current_heading - 360 if current_heading > 355 else current_heading
 
             if current_heading > (end_heading+marg_error):
-                leftMotor.setVelocity(.01)
-                rightMotor.setVelocity(-.01)
+                leftMotor.setVelocity(.05)
+                rightMotor.setVelocity(-.05)
             elif current_heading < (end_heading-marg_error):
-                leftMotor.setVelocity(-.01)
-                rightMotor.setVelocity(.01)
+                leftMotor.setVelocity(-.05)
+                rightMotor.setVelocity(.05)
             else:
                 leftMotor.setVelocity(0)
                 rightMotor.setVelocity(0)
